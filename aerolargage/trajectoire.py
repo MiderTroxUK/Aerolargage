@@ -7,6 +7,7 @@ Conventions (unités SI partout) :
 """
 
 import numpy as np
+from scipy.integrate import solve_ivp
 
 # Atmosphère standard ISA, troposphère (ISO 2533 / US Standard Atmosphere 1976)
 T0 = 288.15      # température au niveau de la mer [K]
@@ -125,3 +126,39 @@ def f(t, X, p):
     a_total = a_drag + a_gravity
 
     return np.array([vx, vy, vz, a_total[0], a_total[1], a_total[2]])
+
+
+
+def simuler(p, z0, V_avion, t_max=300.0):
+    """Intègre une trajectoire de la sortie de rampe jusqu'à l'impact au sol.
+
+    Conditions initiales : charge en (0, 0, z0), vitesse sol = vitesse de l'avion
+    selon +x (vol horizontal, vitesse verticale nulle à la sortie de rampe).
+
+    Paramètres
+        p       : dict des paramètres (voir f)
+        z0      : altitude de largage au-dessus du niveau de la mer [m]
+        V_avion : vitesse sol de l'avion à la sortie de rampe [m/s]
+        t_max   : durée max d'intégration [s] (garde-fou si pas d'impact)
+
+    Retourne l'objet solution de scipy (sol.t, sol.y, sol.t_events, sol.y_events).
+    L'intégration s'arrête quand z atteint p["z_sol"] en descendant.
+    """
+    
+    # Conditions initiales
+    X0 = np.array([0.0, 0.0, z0, V_avion, 0.0, 0.0])
+
+    # Événement d'impact au sol
+    def impact(t, X):
+        return X[2] - p.get("z_sol", 0.0)
+    impact.terminal = True
+    impact.direction = -1  # Descendant
+
+    # Intégration du système d'équations différentielles
+    sol = solve_ivp(fun=lambda t, X: f(t, X, p),
+                    t_span=(0.0, t_max),
+                    y0=X0,
+                    events=impact,
+                    max_step=1.0)  # Limite le pas pour plus de précision
+
+    return sol
