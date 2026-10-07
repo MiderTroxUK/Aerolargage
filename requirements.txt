@@ -1,0 +1,7 @@
+# Calcul scientifique
+numpy>=2.0
+scipy>=1.13
+matplotlib>=3.9
+
+# Tests (verification / recette)
+pytest>=8.0

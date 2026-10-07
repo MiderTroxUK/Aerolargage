@@ -1,0 +1,20 @@
+# Environnement Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Sorties generees (figures, resultats Monte Carlo, runs LS-DYNA)
+outputs/
+d3plot*
+d3hsp
+d3dump*
+d3thdt*
+binout*
+messag
+glstat
+matsum
+
+# IDE
+.vscode/
+.idea/
